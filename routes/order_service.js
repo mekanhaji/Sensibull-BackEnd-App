@@ -1,14 +1,8 @@
 import express from "express";
 import Order from "../models/sensibull.js";
 import axios from "axios";
-import cron from 'node-cron';
 
 const router = express.Router();
-
-// get one data
-router.get('/status/:id', (req, res) => {
-    res.send(res.order);
-})
 
 // create-post order
 router.post('/', async (req, res) => {
@@ -61,6 +55,7 @@ router.post('/', async (req, res) => {
         res.status(500).json({ success: false, error: err.message });
     }
 })
+
 // update date
 router.put('/', async (req, res) => {
     const { identifier, quantity } = req.body;
@@ -107,7 +102,7 @@ router.delete('/', async (req, res) => {
     const { identifier } = req.body;
 
     // Find order
-    const order = await order.findOne({ identifier });
+    const order = order.findOne({ identifier: identifier });
     if (!order) {
         return res.status(404).json({
             success: false,
@@ -136,57 +131,20 @@ router.delete('/', async (req, res) => {
         res.status(500).json({ success: false, error: err.message });
     }
 })
+
 // order status
 router.post('/status', async (req, res) => {
     const { identifier } = req.body;
 
     // Find order
-    const order = Order.findOne({ identifier });
+    const order = Order.findOne({ identifier: identifier });
     if (!order) {
         return res.status(404).json({ success: false, error: 'Order Not Found'});
     }
+    console.log(order);
 
     res.json({ success: true, payload: order})
 })
-// Background job
-cron.schedule('*/15 * * * * *', async () => {
-    // Get all orders
-    const orders = Order.find();
 
-    // Get identifier array
-    const orderIds = orders.map((order) => order.identifier);
-
-    if(orderIds.length === 0) return;
-
-    // Fetch Updates
-    const apiUrl = "https://prototype.sbulltech.com/api/order/status-for-ids";
-    const authToken = 'asdfghjklzxc';
-
-    try {
-        const response = await axios.post(apiUrl, {
-            order_ids: orderIds,
-        }, {
-            headers: {
-                'X-AUTH-TOKEN': authToken,
-            }
-        },);
-
-        // Extracting the updates
-        const { payload: updatedOrders } =  response.data;
-
-        for (const updatedOrder in updatedOrders) {
-            const order = orders.find(order => order.identifier === updatedOrder.order_id);
-
-            if (order) {
-                order.order_status = updatedOrder.status;
-                await order.save();
-            }
-        }
-
-        console.log('Updated');
-    } catch (err) {
-        console.error('Order Status API error:', err.response?.data);
-    }
-})
 
 export default router;
