@@ -1,32 +1,38 @@
-GET http://localhost:19093/order_services/
-###
-GET http://localhost:19093/order_services/status/64b7bf606bc3f97dc6439f9c
+GET http://localhost:19093/order_services/status/
+X-AUTH-TOKEN: asdfghjklzxc
 ###
 POST http://localhost:19093/order_services
 X-AUTH-TOKEN: asdfghjklzxc
 Content-Type: application/json
 
 {
-    "symbol": "SBI",
-    "quantity": 10
+    "symbol": "ICICI",
+    "quantity": 5
 }
 ###
 DELETE http://localhost:19093/order_services/64b7bc654ad34d2699589906
 ###
-PATCH http://localhost:19093/order_services/64b7bf606bc3f97dc6439f9c
-Content-Type: application/json
-
-{
-    "identifier": "ORDER-1689763680605",
-    "new_quantity": 20
-}
-###
-POST https://prototype.sbulltech.com/api/order/place
+PUT http://localhost:19093/order_services/
 X-AUTH-TOKEN: asdfghjklzxc
 Content-Type: application/json
 
 {
-    "symbol": "HDFC",
-    "quantity": 10,
-    "order_tag": "yyyyyy"
+    "identifier": "97b18480-b66d-4a82-9957-d5e3a25f9502",
+    "quantity": 20
+}
+### PUT
+PUT https://prototype.sbulltech.com/api/order/"20a521de-474a-4d0e-935b-896c85ba859c"
+X-AUTH-TOKEN: asdfghjklzxc
+Content-Type: application/application/json
+
+{
+    "quantity": 10
+}
+### Get update
+POST https://prototype.sbulltech.com/api/order/status-for-ids
+X-AUTH-TOKEN: asdfghjklzxc
+Content-Type: application/json
+
+{
+    "order_ids": ["20a521de-474a-4d0e-935b-896c85ba859c"]
 }
