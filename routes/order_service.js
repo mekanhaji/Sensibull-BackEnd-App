@@ -1,5 +1,5 @@
 import express from "express";
-import sensibull from "../models/sensibull.js";
+import Order from "../models/sensibull.js";
 import axios from "axios";
 
 const router = express.Router();
@@ -17,58 +17,70 @@ router.get('/', async (req, res) => {
 router.get('/status/:id', getOrderById, (req, res) => {
     res.send(res.order);
 })
-// create data
+
+// create post order
 router.post('/', async (req, res) => {
     const {symbol, quantity} = req.body;
-    const identifier = generateIdentifier();
-    const orderDetail = {
-        identifier,
-        symbol,
-        quantity,
-        order_status: 'open'
-    }
+    const order_tag = 'yyyyy';
+    // validate symbol and quantity
+    if (!symbol || !quantity)
+        return res.status(400).json({success: false, error: 'Symbol or Quantity Invalid'})
 
-    const order = new sensibull({
-        success: true,
-        payload: orderDetail
-    })
+    // Place order on Sensibull's API
+    const apiUrl = 'https://prototype.sbulltech.com/api/order/place';
+    const authToken = req.headers['x-auth-token'];
 
     try {
-        const newOrder = await order.save();
-        res.status(201).json(newOrder);
-    } catch (error) {
-        res.status(400).send({message: error.message})
+        const response = await axios.post(apiUrl, {
+            symbol,
+            quantity,
+            order_tag,
+        }, {
+            headers: {
+                'X-AUTH-TOKEN': authToken,
+            },
+        });
+        /*
+        {
+            "success": true,
+            "payload": {
+                "order": {
+                    "order_id": "3896f5f8-2258-412e-b42f-71b9d1351121",
+                    "order_tag": "yyyyyy",
+                    "symbol": "HDFC",
+                    "request_quantity": 200,
+                    "filled_quantity": 0,
+                    "status": "open"
+                },
+                "message": "order create success"
+            }
+            }
+        */
+        const { order, message } = response.data.payload;
+
+        const savedOrder = await Order.create({
+            identifier: order.order_id,
+            symbol: order.symbol,
+            quantity:   order.request_quantity,
+            order_status: order.status,
+            order_tag: order.order_tag,
+        });
+
+        res.json({success: true, payload: savedOrder});
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
     }
 })
 // update date
-router.patch('/:id', getOrderById, async (req, res) => {
-    const new_quantity = req.body.new_quantity;
-    if (new_quantity !== null ) {
-        res.order.payload.quantity = new_quantity;
-    }
-
-    try {
-        const updatedOrder = await res.order.save();
-        res.json(updatedOrder);
-    } catch (err) {
-        res.status(400).json({ message: err.message });
-    }
+router.put('/:identifier', async (req, res) => {
+    
 })
 // delete data
 router.delete('/:id', getOrderById, async (req, res) => {
-    try {
-        await res.order.deleteOne()
-        res.json({ message: 'Order Cancel' })
-    } catch (err) {
-        res.status(500).json({ message: err.message })
-    }
+    
 })
 export default router;
-// helper function to make an identifier
-function generateIdentifier() {
-    const timestamp = Date.now();
-    return `ORDER-${timestamp}`;
-}
+
 // Middleware
 async function getOrderById(req, res, next) {
     let order;

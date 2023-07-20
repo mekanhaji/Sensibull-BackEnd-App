@@ -3,6 +3,7 @@ GET http://localhost:19093/order_services/
 GET http://localhost:19093/order_services/status/64b7bf606bc3f97dc6439f9c
 ###
 POST http://localhost:19093/order_services
+X-AUTH-TOKEN: asdfghjklzxc
 Content-Type: application/json
 
 {
@@ -18,4 +19,14 @@ Content-Type: application/json
 {
     "identifier": "ORDER-1689763680605",
     "new_quantity": 20
+}
+###
+POST https://prototype.sbulltech.com/api/order/place
+X-AUTH-TOKEN: asdfghjklzxc
+Content-Type: application/json
+
+{
+    "symbol": "HDFC",
+    "quantity": 10,
+    "order_tag": "yyyyyy"
 }
